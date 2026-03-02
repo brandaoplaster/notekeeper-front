@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useNoteStore } from '@/stores/useNoteStore'
 import NoteItem from '@/components/NoteItem.vue'
 
 const store = useNoteStore()
+
+onMounted(() => {
+  store.fetchNotes()
+})
 </script>
 
 <template>

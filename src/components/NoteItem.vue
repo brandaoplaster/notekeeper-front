@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Note } from '@/types/note'
+import type { NoteResponse } from '@/api/types'
 
 defineProps<{
-  note: Note
+  note: NoteResponse
 }>()
 </script>
 
