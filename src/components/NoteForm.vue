@@ -43,10 +43,19 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div class="max-w-lg mx-auto">
     <form @submit.prevent="onSubmit" class="flex flex-col gap-3">
-      <BaseInput :modelValue="title ?? ''" @update:modelValue="title = $event" label="Title" :error="titleError"
-        :required="true" />
+      <BaseInput
+        :modelValue="title ?? ''"
+        @update:modelValue="title = $event"
+        label="Title"
+        :error="titleError"
+        :required="true"
+      />
 
-      <BaseTextarea :modelValue="content ?? ''" @update:modelValue="content = $event" label="Content" />
+      <BaseTextarea
+        :modelValue="content ?? ''"
+        @update:modelValue="content = $event"
+        label="Content"
+      />
 
       <BaseButton type="submit" :label="loading ? 'Creating...' : 'Add Note'" :disabled="loading" />
     </form>
