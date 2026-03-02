@@ -8,8 +8,8 @@ vi.mock('@/api/noteService', () => ({
   noteService: {
     getAll: vi.fn(),
     create: vi.fn(),
-    remove: vi.fn()
-  }
+    remove: vi.fn(),
+  },
 }))
 
 describe('NoteList', () => {
@@ -30,7 +30,7 @@ describe('NoteList', () => {
   it('renders list items', async () => {
     const mockNotes = [
       { id: '1', title: 'Note 1', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
-      { id: '2', title: 'Note 2', createdAt: '2024-01-01', updatedAt: '2024-01-01' }
+      { id: '2', title: 'Note 2', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
     ]
 
     vi.mocked(noteService.getAll).mockResolvedValue(mockNotes)
@@ -43,7 +43,7 @@ describe('NoteList', () => {
 
   it('does not show empty message when there are notes', async () => {
     const mockNotes = [
-      { id: '1', title: 'Note 1', createdAt: '2024-01-01', updatedAt: '2024-01-01' }
+      { id: '1', title: 'Note 1', createdAt: '2024-01-01', updatedAt: '2024-01-01' },
     ]
 
     vi.mocked(noteService.getAll).mockResolvedValue(mockNotes)

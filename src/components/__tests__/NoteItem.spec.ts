@@ -9,12 +9,12 @@ describe('NoteItem', () => {
     title: 'Default Title',
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
-    ...overrides
+    ...overrides,
   })
 
   it('renders the title', () => {
     const wrapper = mount(NoteItem, {
-      props: { note: createMockNote({ title: 'My note' }) }
+      props: { note: createMockNote({ title: 'My note' }) },
     })
     expect(wrapper.html()).toContain('My note')
   })
@@ -24,16 +24,16 @@ describe('NoteItem', () => {
       props: {
         note: createMockNote({
           title: 'Title',
-          content: 'Note content'
-        })
-      }
+          content: 'Note content',
+        }),
+      },
     })
     expect(wrapper.html()).toContain('Note content')
   })
 
   it('does not render content when absent', () => {
     const wrapper = mount(NoteItem, {
-      props: { note: createMockNote({ title: 'Title' }) }
+      props: { note: createMockNote({ title: 'Title' }) },
     })
     expect(wrapper.find('p').exists()).toBe(false)
   })
