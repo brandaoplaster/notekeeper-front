@@ -1,17 +1,30 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Note } from '@/types/note'
+import { noteService } from '@/api/noteService'
+import type { NoteResponse, CreateNoteRequest } from '@/api/types'
 
 export const useNoteStore = defineStore('note', () => {
-	const notes = ref<Note[]>([])
+	const notes = ref<NoteResponse[]>([])
+	const loading = ref(false)
 
-	function addNote(note: Note) {
-		notes.value.unshift(note)
+	async function fetchNotes() {
+		loading.value = true
+		try {
+			notes.value = await noteService.getAll()
+		} finally {
+			loading.value = false
+		}
 	}
 
-	function removeNote(id: string) {
+	async function addNote(note: CreateNoteRequest) {
+		const created = await noteService.create(note)
+		notes.value.unshift(created)
+	}
+
+	async function removeNote(id: string) {
+		await noteService.remove(id)
 		notes.value = notes.value.filter((n) => n.id !== id)
 	}
 
-	return { notes, addNote, removeNote }
+	return { notes, loading, fetchNotes, addNote, removeNote }
 })
