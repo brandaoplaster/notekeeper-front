@@ -1,8 +1,8 @@
 import type { Note } from '@/types/note'
 
-export interface CreateNoteRequest extends Omit<Note, 'id'> { }
+export type CreateNoteRequest = Omit<Note, 'id'>
 
-export interface UpdateNoteRequest extends Partial<Note> { }
+export type UpdateNoteRequest = Partial<Note>
 
 export interface NoteResponse extends Note {
 	id: string
