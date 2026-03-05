@@ -76,13 +76,10 @@ describe('useNoteStore', () => {
 
       const store = useNoteStore()
 
-      try {
-        await store.fetchNotes()
-        expect.fail('Should have thrown an error')
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error)
-        expect((error as Error).message).toBe('API Error')
-      }
+      await expect(store.fetchNotes()).rejects.toMatchObject({
+        message: 'API Error',
+      })
+      await expect(store.fetchNotes()).rejects.toBeInstanceOf(Error)
 
       expect(store.loading).toBe(false)
     })

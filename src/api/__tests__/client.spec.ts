@@ -54,13 +54,17 @@ describe('ApiError', () => {
     }).toThrow('Bad Request')
   })
 
-  it('should be catchable as ApiError instance', () => {
-    try {
+  it('should be catchable as ApiError instance', async () => {
+    const throwError = async () => {
       throw new ApiError(422, 'Validation error')
-    } catch (error) {
-      expect(error).toBeInstanceOf(ApiError)
-      expect((error as ApiError).status).toBe(422)
     }
+
+    await expect(throwError()).rejects.toMatchObject({
+      status: 422,
+      message: 'Validation error',
+      name: 'ApiError',
+    })
+    await expect(throwError()).rejects.toBeInstanceOf(ApiError)
   })
 })
 
@@ -102,12 +106,16 @@ describe('axios client configuration', () => {
   })
 
   it('should register request interceptor', () => {
-    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as any
+    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as ReturnType<
+      typeof axios.create
+    >
     expect(mockInstance.interceptors.request.use).toHaveBeenCalled()
   })
 
   it('should register response interceptor', () => {
-    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as any
+    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as ReturnType<
+      typeof axios.create
+    >
     expect(mockInstance.interceptors.response.use).toHaveBeenCalled()
   })
 })
@@ -117,10 +125,14 @@ describe('request interceptor', () => {
   let onRejected: (error: AxiosError) => Promise<never>
 
   beforeEach(() => {
-    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as any
-    const requestInterceptorCall = mockInstance?.interceptors.request.use.mock.calls[0]
-    onFulfilled = requestInterceptorCall?.[0]
-    onRejected = requestInterceptorCall?.[1]
+    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as ReturnType<
+      typeof axios.create
+    >
+    const requestInterceptorCall = vi.mocked(mockInstance?.interceptors.request.use).mock.calls[0]
+    onFulfilled = requestInterceptorCall![0] as (
+      config: InternalAxiosRequestConfig,
+    ) => InternalAxiosRequestConfig
+    onRejected = requestInterceptorCall![1] as (error: AxiosError) => Promise<never>
   })
 
   it('should pass through config unchanged on success', () => {
@@ -160,11 +172,7 @@ describe('request interceptor', () => {
   it('should preserve error type on rejection', async () => {
     const mockError = new Error('Network error') as AxiosError
 
-    try {
-      await onRejected(mockError)
-    } catch (error) {
-      expect(error).toBe(mockError)
-    }
+    await expect(onRejected(mockError)).rejects.toBe(mockError)
   })
 })
 
@@ -172,9 +180,11 @@ describe('response interceptor - success', () => {
   let onFulfilled: (response: AxiosResponse) => AxiosResponse
 
   beforeEach(() => {
-    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as any
-    const responseInterceptorCall = mockInstance?.interceptors.response.use.mock.calls[0]
-    onFulfilled = responseInterceptorCall?.[0]
+    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as ReturnType<
+      typeof axios.create
+    >
+    const responseInterceptorCall = vi.mocked(mockInstance?.interceptors.response.use).mock.calls[0]
+    onFulfilled = responseInterceptorCall![0] as (response: AxiosResponse) => AxiosResponse
   })
 
   it('should pass through successful responses unchanged', () => {
@@ -242,9 +252,11 @@ describe('response interceptor - error handling', () => {
   let onRejected: (error: AxiosError) => Promise<never>
 
   beforeEach(() => {
-    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as any
-    const responseInterceptorCall = mockInstance?.interceptors.response.use.mock.calls[0]
-    onRejected = responseInterceptorCall?.[1]
+    const mockInstance = vi.mocked(axios.create).mock.results[0]?.value as ReturnType<
+      typeof axios.create
+    >
+    const responseInterceptorCall = vi.mocked(mockInstance?.interceptors.response.use).mock.calls[0]
+    onRejected = responseInterceptorCall![1] as (error: AxiosError) => Promise<never>
   })
 
   describe('401 Unauthorized', () => {
@@ -267,12 +279,11 @@ describe('response interceptor - error handling', () => {
         response: { status: 401 },
       } as AxiosError
 
-      try {
-        await onRejected(axiosError)
-      } catch (error) {
-        expect((error as ApiError).message).toBe('Unauthorized')
-        expect((error as ApiError).message).not.toBe('Original message')
-      }
+      await expect(onRejected(axiosError)).rejects.toMatchObject({
+        status: 401,
+        message: 'Unauthorized',
+        name: 'ApiError',
+      })
     })
   })
 
@@ -296,11 +307,11 @@ describe('response interceptor - error handling', () => {
         response: { status: 500 },
       } as AxiosError
 
-      try {
-        await onRejected(axiosError)
-      } catch (error) {
-        expect((error as ApiError).message).toBe('Internal server error')
-      }
+      await expect(onRejected(axiosError)).rejects.toMatchObject({
+        status: 500,
+        message: 'Internal server error',
+        name: 'ApiError',
+      })
     })
   })
 
@@ -336,12 +347,11 @@ describe('response interceptor - error handling', () => {
         response: { status: 404 },
       } as AxiosError
 
-      try {
-        await onRejected(axiosError)
-      } catch (error) {
-        expect((error as ApiError).status).toBe(404)
-        expect((error as ApiError).message).toBe('Resource not found')
-      }
+      await expect(onRejected(axiosError)).rejects.toMatchObject({
+        status: 404,
+        message: 'Resource not found',
+        name: 'ApiError',
+      })
     })
 
     it('should transform 422 validation errors', async () => {
@@ -377,12 +387,13 @@ describe('response interceptor - error handling', () => {
         response: undefined,
       } as AxiosError
 
-      try {
-        await onRejected(axiosError)
-      } catch (error) {
-        expect((error as ApiError).status).toBe(0)
-        expect((error as ApiError).message).toContain('timeout')
-      }
+      await expect(onRejected(axiosError)).rejects.toMatchObject({
+        status: 0,
+        name: 'ApiError',
+      })
+      await expect(onRejected(axiosError)).rejects.toMatchObject({
+        message: expect.stringContaining('timeout'),
+      })
     })
 
     it('should handle connection refused', async () => {
@@ -402,8 +413,11 @@ describe('response interceptor - error handling', () => {
     it('should handle error with null response', async () => {
       const axiosError = {
         message: 'Unknown error',
-        response: null,
-      } as any
+        response: undefined,
+        isAxiosError: true,
+        toJSON: () => ({}),
+        name: 'AxiosError',
+      } as AxiosError
 
       await expect(onRejected(axiosError)).rejects.toMatchObject({
         status: 0,
@@ -414,7 +428,7 @@ describe('response interceptor - error handling', () => {
     it('should handle error with response but no status', async () => {
       const axiosError = {
         message: 'Weird error',
-        response: {} as any,
+        response: {} as AxiosResponse,
       } as AxiosError
 
       await expect(onRejected(axiosError)).rejects.toMatchObject({
@@ -429,17 +443,13 @@ describe('response interceptor - error handling', () => {
         response: { status: 418 },
       } as AxiosError
 
-      try {
-        await onRejected(axiosError)
-      } catch (error) {
-        expect(error).toBeInstanceOf(ApiError)
-      }
+      await expect(onRejected(axiosError)).rejects.toBeInstanceOf(ApiError)
     })
 
     it('should handle status code 0', async () => {
       const axiosError = {
         message: 'CORS error',
-        response: { status: 0 } as any,
+        response: { status: 0 } as AxiosResponse,
       } as AxiosError
 
       await expect(onRejected(axiosError)).rejects.toMatchObject({

@@ -199,7 +199,7 @@ describe('noteService', () => {
       const error = new Error('Title is required')
       vi.mocked(client.post).mockRejectedValue(error)
 
-      await expect(noteService.create(invalidNote)).rejects.toThrow()
+      await expect(noteService.create(invalidNote)).rejects.toThrow('Title is required')
     })
 
     it('should accept note with empty content', async () => {
