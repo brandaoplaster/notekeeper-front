@@ -16,5 +16,9 @@ export default defineConfig({
       'node_modules/**',
       '**/node_modules/**'
     ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+    }
   },
 })
