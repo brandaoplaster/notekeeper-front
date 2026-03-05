@@ -10,16 +10,12 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 const store = useNoteStore()
 const loading = ref(false)
 
-const { handleSubmit, resetForm } = useForm({
-  validationSchema: {
-    title: (value: string) => {
-      if (!value || !value.trim()) return 'Title is required'
-      return true
-    },
-  },
-})
+const { handleSubmit, resetForm } = useForm()
+const { value: title, errorMessage: titleError } = useField<string>(
+  'title',
+  (value) => !!value?.trim() || 'Title is required',
+)
 
-const { value: title, errorMessage: titleError } = useField<string>('title')
 const { value: content } = useField<string>('content')
 
 const onSubmit = handleSubmit(async (values) => {
