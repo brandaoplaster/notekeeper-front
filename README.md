@@ -115,6 +115,12 @@ Executa os testes unitários:
 pnpm test:unit
 ```
 
+Executa os testes e gera relatório de cobertura:
+
+```bash
+pnpm vitest run --coverage
+```
+
 ### Linting
 
 Executa os linters para verificar a qualidade do código:
